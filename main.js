@@ -17,9 +17,9 @@ class SandParticle {
     }
 
     randomColor() {
+        const b = 255;
         const r = Math.floor(Math.random() * 256);
-        const g = Math.floor(Math.random() * 256);
-        const b = Math.floor(Math.random() * 256);
+        const g = r; // 白から青の範囲に限定
         return `rgb(${r}, ${g}, ${b})`;
     }
 
@@ -27,9 +27,9 @@ class SandParticle {
         this.vy += gravity;
         this.y += this.vy;
 
-        // Keep particle within canvas bounds
+        // If particle falls below the canvas, reset to top
         if (this.y + sandSize > canvas.height) {
-            this.y = canvas.height - sandSize;
+            this.y = -sandSize;
             this.vy = 0;
         }
     }
