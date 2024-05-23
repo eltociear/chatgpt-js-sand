@@ -5,8 +5,11 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const sandParticles = [];
+const walls = [];
 const sandSize = 2;
 const gravity = 0.5;
+let isDragging = false;
+let startX, startY;
 
 class SandParticle {
     constructor(x, y) {
@@ -27,6 +30,15 @@ class SandParticle {
         this.vy += gravity;
         this.y += this.vy;
 
+        // Check for collision with walls
+        walls.forEach(wall => {
+            if (this.x >= wall.x && this.x <= wall.x + wall.width &&
+                this.y + sandSize >= wall.y && this.y <= wall.y + wall.height) {
+                this.y = wall.y - sandSize;
+                this.vy = 0;
+            }
+        });
+
         // If particle falls below the canvas, reset to top
         if (this.y + sandSize > canvas.height) {
             this.y = -sandSize;
@@ -40,19 +52,59 @@ class SandParticle {
     }
 }
 
-canvas.addEventListener('mousemove', (e) => {
+class Wall {
+    constructor(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    draw() {
+        ctx.fillStyle = 'gray';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+}
+
+canvas.addEventListener('mousedown', (e) => {
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    sandParticles.push(new SandParticle(x, y));
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+    isDragging = true;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const rect = canvas.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        const width = currentX - startX;
+        const height = currentY - startY;
+        walls.push(new Wall(startX, startY, width, height));
+        startX = currentX;
+        startY = currentY;
+    } else {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        sandParticles.push(new SandParticle(x, y));
+    }
+});
+
+canvas.addEventListener('mouseup', () => {
+    isDragging = false;
 });
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    walls.forEach(wall => wall.draw());
+
     sandParticles.forEach(particle => {
         particle.update();
         particle.draw();
     });
+
     requestAnimationFrame(animate);
 }
 
