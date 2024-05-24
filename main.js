@@ -31,13 +31,20 @@ class SandParticle {
         this.y += this.vy;
 
         // Check for collision with walls
+        let onWall = false;
         walls.forEach(wall => {
             if (this.x >= wall.x && this.x <= wall.x + wall.width &&
                 this.y + sandSize >= wall.y && this.y <= wall.y + wall.height) {
                 this.y = wall.y - sandSize;
                 this.vy = 0;
+                onWall = true;
             }
         });
+
+        // If particle is on wall, apply random horizontal movement
+        if (onWall) {
+            this.x += Math.random() < 0.5 ? -1 : 1;
+        }
 
         // If particle falls below the canvas, reset to top
         if (this.y + sandSize > canvas.height) {
@@ -61,7 +68,7 @@ class Wall {
     }
 
     draw() {
-        ctx.fillStyle = 'gray';
+        ctx.fillStyle = 'white'; // 壁の色を白に設定
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
